@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="/style.css">
+  </head>
+
+  <body>
+    <!-- حاوية الشاشة -->
+<div id="info">نموذج ذري ثلاثي الأبعاد تفاعلي (كيمياء ممتعة)</div>
+<div id="canvas-container"></div>
+
+<!-- استدعاء مكتبة Three.js من مصدر موثوق -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// إعداد المشهد والكاميرا
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// إضافة إضاءة
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0xffffff, 1.5);
+pointLight.position.set(10, 10, 10);
+scene.add(pointLight);
+
+// 1. إنشاء النواة (مركز الذرة)
+const nucleusGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+const nucleusMaterial = new THREE.MeshPhongMaterial({ color: 0xff3366, emissive: 0x551122, shininess: 100 });
+const nucleus = new THREE.Mesh(nucleusGeometry, nucleusMaterial);
+scene.add(nucleus);
+
+// 2. إنشاء الإلكترونات والمدارات
+const electrons = [];
+const orbitsCount = 3;
+for (let i = 0; i < orbitsCount; i++) {
+    const radius = 2.5 + (i * 1.5);
+    
+    // رسم مسار المدار
+    const orbitGeometry = new THREE.RingGeometry(radius - 0.02, radius + 0.02, 64);
+    const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
+    const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
+    orbit.rotation.x = Math.PI / 2 + (i * 0.5);
+    scene.add(orbit);
+
+    // إنشاء الإلكترون
+    const electronGeo = new THREE.SphereGeometry(0.2, 16, 16);
+    const electronMat = new THREE.MeshPhongMaterial({ color: 0x00ffcc, emissive: 0x00ffff });
+    const electron = new THREE.Mesh(electronGeo, electronMat);
+    
+    electrons.push({
+        mesh: electron,
+        radius: radius,
+        speed: 0.02 + (i * 0.01),
+        angle: Math.random() * Math.PI,
+        tilt: orbit.rotation.x
+    });
+    scene.add(electron);
+}
+
+camera.position.z = 8;
+
+// حلقة الحركة
+function animate() {
+    requestAnimationFrame(animate);
+
+    nucleus.rotation.y += 0.01;
+    nucleus.rotation.x += 0.005;
+
+    electrons.forEach(el => {
+        el.angle += el.speed;
+        el.mesh.position.x = el.radius * Math.cos(el.angle);
+        el.mesh.position.z = el.radius * Math.sin(el.angle);
+        el.mesh.position.y = Math.sin(el.angle) * Math.cos(el.tilt) * 1.5;
+    });
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+// التكيف مع حجم الشاشة
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+<style>
+/* تنسيق التصميم والعرض */
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #05050a;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+#info {
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    text-align: center;
+    color: #00ffff;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    z-index: 10;
+}
+</style>
+
+
+    <script src="/script.js"></script>
+  </body>
+
+</html>
